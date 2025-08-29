@@ -3,15 +3,15 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 
-// First define __filename and __dirname
+// Define __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Then load .env
+// Load environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-// Now use process.env.MONGO_URI
 const uri = process.env.MONGO_URI;
+console.log('Loaded MONGO_URI:', uri); // Optional: for debugging
 if (!uri) {
   console.error('Missing MONGO_URI');
   process.exit(1);
