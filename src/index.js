@@ -1,5 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();  // must be first
 import './config/mongo.js';
 import morgan from 'morgan';
 import express from 'express';
