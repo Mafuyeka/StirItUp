@@ -29,4 +29,4 @@ app.use('/api', bookingRoutes);
 app.use('/api', reviewRoutes);
 
 const port = process.env.PORT || 5000;
-app.listen(port, () => console.log(`StirItUp running on http://localhost:${port}`));
+app.listen(port, '0.0.0.0', () => console.log(`StirItUp running on http://localhost:${port}`));
