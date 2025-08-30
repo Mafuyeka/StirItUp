@@ -1,6 +1,16 @@
 # StirItUp
 
-StirItUp is a cooking classes booking platform. Users can register, chefs can create classes, users can book classes and leave reviews.
+StirItUp is an exciting cooking class booking platform designed for food lovers and aspiring chefs alike. Whether you want to perfect your pastries, explore the artistry of cold kitchen creations, master sizzling hot dishes, or experience the elegance of fine dining, StirItUp connects you to chefs and classes that make it possible.
+
+With StirItUp:
+
+ Chefs can create and manage their own cooking classes.
+
+ Users can easily register, explore categories, book classes, and leave reviews.
+
+ Classes start from just R500, with flexible booking days to fit into any schedule.
+
+Our mission is simple: bring people together through food, creativity, and learning. Whether you’re a beginner or a culinary enthusiast, StirItUp helps you sharpen your skills, meet passionate chefs, and enjoy the art of cooking in a fun, interactive way.
 
 ## Quick Start
 
