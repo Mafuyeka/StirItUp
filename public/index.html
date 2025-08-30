@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StirItUp — Cooking Classes</title>
+  <style>
+    :root{--max:1100px;--muted:#6b7280;--accent:#10b981}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:1.5rem;display:flex;flex-direction:column;align-items:center}
+    .container{width:100%;max-width:var(--max)}
+    header{position:relative;width:100%;height:360px;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(2,6,23,0.08)}
+    header img{width:100%;height:100%;object-fit:cover;filter:contrast(1.02) saturate(1.02)}
+    header .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.28));color:white}
+    h1{font-size:2rem;margin:0}
+    .muted{color:var(--muted);margin-top:.5rem}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin:1.25rem 0}
+    .card{background:white;border-radius:12px;overflow:hidden;border:1px solid #eee;box-shadow:0 6px 18px rgba(2,6,23,0.04)}
+    .card img{width:100%;height:160px;object-fit:cover}
+    .card .body{padding:12px}
+    .card h3{margin:0 0 6px 0}
+    .meta{color:var(--muted);font-size:.95rem;margin-bottom:.5rem}
+    .price{font-weight:700;margin-top:.25rem}
+    .days{font-size:.9rem;color:var(--muted)}
+    .row{display:flex;gap:.5rem;align-items:center}
+    button{background:var(--accent);color:white;border:none;padding:.5rem .75rem;border-radius:10px;cursor:pointer}
+    .ghost{background:#f3f4f6;color:#111;border:1px solid #e5e7eb}
+    .center{display:flex;align-items:center;gap:1rem;justify-content:center;margin-top:1rem}
+    .notice{background:#f9fafb;border:1px solid #eef2ff;padding:10px;border-radius:10px;margin-top:12px;color:#111}
+    footer{margin:2rem 0;color:var(--muted);font-size:.9rem}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="/images/cooking-class.jpg" alt="Chefs in a cooking class">
+      <div class="overlay">
+        <div style="text-align:center">
+          <h1>StirItUp</h1>
+          <div class="muted">Book hands-on cooking classes — from Pastry to Fine Dining</div>
+        </div>
+      </div>
+    </header>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem">
+      <div>
+        <strong>Welcome to StirItUp</strong>
+        <div class="muted">Choose a category, check available days, and book your seat. Prices start at R500.</div>
+      </div>
+      <div>
+        <button onclick="showAuth()">Register / Login</button>
+      </div>
+    </div>
+
+    <section style="margin-top:1rem">
+      <h2 style="margin:0 0 .5rem 0">Classes & Pricing</h2>
+      <div class="cards" id="classCards">
+        <!-- cards injected by JS -->
+      </div>
+    </section>
+
+    <div class="center">
+      <button class="ghost" onclick="loadClasses()">Refresh classes</button>
+      <div id="message" class="notice" style="display:none"></div>
+    </div>
+
+    <footer>StirItUp • Demo platform • Prices shown in ZAR (R)</footer>
+  </div>
+
+<script>
+// Client-side logic: load classes from API, render cards with prices and booking days, handle Book & Pay flow.
+// If classes API returns price, we use it. Otherwise we default to mapping below.
+//
+// Booking flow: sends POST to /api/bookings with { classId, seats:1 } with Authorization header.
+// Payment is simulated for demo (you can integrate Stripe later).
+
+const sampleData = [
+  { id:'pastry', title:'Pastry', desc:'Artisan breads, viennoiserie & desserts', price:500, days:['Mon','Wed','Fri'] , img:'/images/pastry.jpg' },
+  { id:'cold', title:'Cold Kitchen', desc:'Salads, charcuterie & cold plates', price:650, days:['Tue','Thu'], img:'/images/cold-kitchen.jpg' },
+  { id:'hot', title:'Hot Kitchen', desc:'Sautés, grills, and sauces', price:750, days:['Sat','Sun'], img:'/images/hot-kitchen.jpg' },
+  { id:'fine', title:'Fine Dining', desc:'Plating, wine pairings & degustation menus', price:1000, days:['Sat evenings'], img:'/images/fine-dining.jpg' }
+];
+
+function currency(n){ return 'R' + n; }
+
+async function loadClasses(){
+  // try fetching real classes from API; fall back to sampleData if failed or empty
+  let classes = null;
+  try{
+    const res = await fetch('/api/classes');
+    if (res.ok){
+      classes = await res.json();
+      // map structure to expected keys
+      classes = classes.map(c => ({
+        id: c._id,
+        title: c.title,
+        desc: c.description || '',
+        price: c.price || null,
+        days: c.days || null,
+        img: c.image ? ('/uploads/' + c.image) : '/images/pastry.jpg',
+        chef: c.chef
+      }));
+    }
+  }catch(e){ console.log('API classes fetch failed, using demo data'); }
+
+  if (!classes || classes.length===0) classes = sampleData.map(s => ({...s}));
+  renderCards(classes);
+}
+
+function renderCards(classes){
+  const el = document.getElementById('classCards');
+  el.innerHTML = classes.map(c => `
+    <div class="card">
+      <img src="${c.img}" alt="${c.title}" />
+      <div class="body">
+        <h3>${c.title}</h3>
+        <div class="meta">${c.desc}</div>
+        <div class="price">${c.price ? currency(c.price) : 'From R500'}</div>
+        <div class="days">Available: ${c.days ? c.days.join(', ') : 'See schedule'}</div>
+        <div style="margin-top:.6rem;display:flex;gap:.5rem">
+          <button onclick="bookClass('${c.id}', ${c.price || 500})">Book & Pay</button>
+          <button class="ghost" onclick="viewDetails('${c.id}')">View</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function viewDetails(id){
+  alert('Open class details for ' + id + '. For demo, use the Book & Pay button.');
+}
+
+function showMessage(t){ const m = document.getElementById('message'); m.style.display='block'; m.textContent = t; setTimeout(()=>m.style.display='none',4000); }
+
+async function bookClass(classId, price){
+  // Check auth
+  const token = localStorage.getItem('token');
+  if (!token) return showMessage('Please login first to book');
+  // simulate payment step: confirm paying amount
+  const ok = confirm('You will be charged ' + currency(price) + '. Proceed to payment simulation?');
+  if (!ok) return;
+  // simulate payment success and create booking
+  try{
+    const res = await fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + token },
+      body: JSON.stringify({ classId, seats:1 })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showMessage('Booking successful! Check your bookings page.');
+    } else {
+      showMessage(data.error || 'Booking failed');
+    }
+  } catch(e){
+    showMessage('Booking request failed');
+  }
+}
+
+// Basic auth UI (simple register/login modal simulation)
+function showAuth(){
+  const email = prompt('Enter email (for demo):');
+  if (!email) return;
+  const pw = prompt('Enter password:');
+  if (!pw) return;
+  // Try to login, else register automatically for demo convenience
+  fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password: pw }) })
+    .then(r=>r.json().then(d=>({ok:r.ok,data:d})))
+    .then(async obj=>{
+      if (obj.ok){
+        localStorage.setItem('token', obj.data.token); localStorage.setItem('user', JSON.stringify(obj.data.user));
+        showMessage('Logged in as ' + obj.data.user.name);
+      } else {
+        // register flow: ask for name and chef flag
+        const name = prompt('Register - enter your name:');
+        const isChef = confirm('Register as chef? OK = yes');
+        const reg = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, email, password: pw, isChef }) });
+        const rd = await reg.json();
+        if (reg.ok){ localStorage.setItem('token', rd.token); localStorage.setItem('user', JSON.stringify(rd.user)); showMessage('Registered and logged in.'); }
+        else showMessage(rd.error || 'Registration failed');
+      }
+      // reload to show chef create UI if applicable
+      setTimeout(()=>location.reload(),800);
+    }).catch(()=>showMessage('Auth failed'));
+}
+
+// initialize
+loadClasses();
+</script>
+</body>
+</html>
